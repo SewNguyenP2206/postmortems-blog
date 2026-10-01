@@ -2,6 +2,8 @@
 
 title: "Search Service (Staging) – Lỗi TLS Elasticsearch do thiếu CA trong Image"
 date: "2026-09"
+language: vi
+translation: "postmortem-ai-product-search-worker-otel-timeout"
 severity: "P3"          # non-production
 status: "monitoring"    # đã áp dụng bản fix; đang chờ xác nhận
 duration: "TBD"

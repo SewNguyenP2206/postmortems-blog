@@ -1,6 +1,8 @@
 ---
 title: "Search Service (Staging) – Elasticsearch TLS Failure Due to a Missing CA in the Image"
 date: "2026-09"
+language: en
+translation: "postmortem-ai-product-search-worker-otel-timeout-vi"
 severity: "P3"          # non-production
 status: "monitoring"    # fix applied; confirmation pending
 duration: "TBD"
