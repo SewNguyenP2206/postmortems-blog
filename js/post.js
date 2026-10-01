@@ -187,12 +187,33 @@ function renderPost(meta, content) {
   initScrollSpy();
 }
 
+function resolveTranslationTarget(meta, currentLanguage, targetLanguage) {
+  const currentSlug = slug || '';
+  const translationSlug = meta.translation || '';
+
+  if (currentLanguage === targetLanguage) return currentSlug;
+
+  if (translationSlug && translationSlug !== currentSlug) {
+    return translationSlug;
+  }
+
+  if (targetLanguage === 'vi' && !currentSlug.endsWith('-vi')) {
+    return `${currentSlug}-vi`;
+  }
+
+  if (targetLanguage === 'en' && currentSlug.endsWith('-vi')) {
+    return currentSlug.replace(/-vi$/, '');
+  }
+
+  return currentSlug;
+}
+
 function renderLanguageSwitch(meta, language, label) {
   const switcher = document.getElementById('language-switch');
   switcher.replaceChildren();
   switcher.setAttribute('aria-label', label);
 
-  if (!meta.translation) {
+  if (!meta.translation && !slug) {
     switcher.hidden = true;
     return;
   }
@@ -202,7 +223,8 @@ function renderLanguageSwitch(meta, language, label) {
     link.className = 'language-option';
     link.textContent = option.toUpperCase();
     link.lang = option;
-    link.href = `post.html?slug=${encodeURIComponent(option === language ? slug : meta.translation)}`;
+    const targetSlug = resolveTranslationTarget(meta, language, option);
+    link.href = `post.html?slug=${encodeURIComponent(targetSlug)}`;
     if (option === language) link.setAttribute('aria-current', 'page');
     switcher.append(link);
   }

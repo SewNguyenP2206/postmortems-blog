@@ -3,7 +3,7 @@
 title: "[EKS] Data scraping worker pod – Playwright continuously crashing due to OTel Add-on 'ambush'"
 date: "2026-09-25"
 language: en
-translation: "postmortem-headless-browser-outage-templated"
+translation: "postmortem-headless-browser-outage-templated-vi"
 severity: "P1"
 status: "resolved"
 duration: "Around 4-5 hours (estimated, not accurately tracked yet - see Action Items)"
