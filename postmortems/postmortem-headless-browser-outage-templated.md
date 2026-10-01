@@ -1,72 +1,74 @@
 ---
-title: "Product Data Worker – Playwright Renderer Crash-Loop from Silent OTel Injection"
+
+title: "[EKS] Data scraping worker pod – Playwright continuously crashing due to OTel Add-on 'ambush'"
 date: "2026-09-25"
 language: en
-translation: "postmortem-headless-browser-outage-templated-vi"
+translation: "postmortem-headless-browser-outage-templated"
 severity: "P1"
 status: "resolved"
-duration: "~4-5h (approx. — not precisely tracked, see Action Items)"
+duration: "Around 4-5 hours (estimated, not accurately tracked yet - see Action Items)"
 services:
-  - "Product Data Worker"
-  - "Headless Browser Automation (Playwright/Chromium)"
+
+* "Product Data Worker"
+* "Playwright / Chromium"
 author: "Backend / Platform Team"
 tags:
-  - "kubernetes"
-  - "eks"
-  - "opentelemetry"
-  - "admission-webhook"
-  - "headless-browser"
-  - "playwright"
-summary: "An unrelated add-on upgrade caused a Kubernetes mutating webhook to silently inject OpenTelemetry auto-instrumentation on the next pod restart, triggering an infinite Chromium renderer crash-loop and failing all scraping jobs."
+* "kubernetes"
+* "eks"
+* "opentelemetry"
+* "admission-webhook"
+* "headless-browser"
+* "playwright"
+summary: "A normal pod restart accidentally triggered a k8s mutating webhook, automatically injecting OTel auto-instrumentation. This caused the Chromium renderer to get stuck in a crash loop, taking down all data scraping jobs with it."
+
 ---
 
 ## Incident Overview
 
-On 2026-09-25, starting around 10:00, a production worker that fetches product pages from third-party sites using a headless-browser automation library (Playwright/Chromium) began failing every job with timeout errors. The failures looked like external network issues but were actually caused by a Kubernetes admission webhook — installed by a managed observability add-on — that had silently added auto-instrumentation annotations to the workload during a routine restart the night before. That instrumentation hung during startup, which cascaded into the headless browser's child-process management and put it into a permanent crash-restart loop.
+Around 10:00 AM on 09/25/2026, the worker using Playwright to scrape data from e-commerce sites suddenly failed en masse with timeout errors. At first glance, it seemed like a network disconnection or the target sites were blocking us, but after some debugging, the culprit was revealed: an EKS admission webhook. Specifically, during a pod restart the night before, this webhook (bundled with an EKS add-on) injected OpenTelemetry auto-instrumentation annotations into the workload. Unfortunately, this instrumentation hung during startup, causing the entire tree of Chromium child processes to continuously crash and restart.
 
 ## Timeline
 
 | Time (UTC) | Event |
-|---|---|
-| ~23:29 (previous day) | Routine pod restart (unrelated maintenance action) — first pod recreation since an earlier add-on upgrade. A mutating admission webhook silently injects 8 auto-instrumentation annotations into the pod spec. |
-| 10:00 | First scrape job after the restart fails with `Content fetch failed` / `Navigation timeout after 60s`. |
-| — | Direct `curl` to target URLs from inside the pod succeeds (200 OK) — network/egress ruled out. |
-| — | Identical code on a lower environment works fine — environment-specific issue confirmed. |
-| — | Recurring log line noticed: a failed AWS resource-detection call, present only in the affected environment. |
-| — | Resource limits, sandbox/runtime, and browser binary version all ruled out one by one. |
-| — | Browser binary launched manually (outside the automation library) — works fine on its own. |
-| — | Reproduced only when exercising the automation library's actual code path — process tree shows dozens of short-lived renderer child processes spawning and dying in rapid succession (crash-loop, not a simple hang). |
-| — | Auto-instrumentation disabled as a test — job succeeds immediately. |
-| — | Kubernetes API audit logs pulled to confirm exact mutation event and timestamp. |
-| Same day | Workaround applied (annotation override), service confirmed stable. |
+| --- | --- |
+| ~23:29 (previous night) | Pod was randomly restarted due to minor infrastructure maintenance. This was the first time the pod was recreated since the add-on update. The webhook secretly injected 8 OTel annotations. |
+| 10:00 | The first data scraping jobs of the day failed with `Content fetch failed` / `Navigation timeout after 60s` errors. |
+| — | Jumped straight into the pod and ran `curl` to the outside, received HTTP 200 OK, ruling out network issues or egress blocks. |
+| — | Brought the code to staging/dev and it ran smoothly. |
+| — | Increased RAM/CPU limits, disabled sandbox, changed browser version -> Still failed. |
+| — | Ran raw Chromium via command line (bypassing the Playwright library) -> Still survived. |
+| — | Tried disabling auto-instrumentation -> Job passed successfully (green). |
+| — | Inspected CloudTrail logs: found no one had interacted with the EKS cluster. |
+| — | Had to dig into an S3 bucket containing 1-year-old CloudTrail history (from when EKS was created along with the add-on). |
+| — | Root cause identified. |
+| Same day | Resolved by adding an annotation to explicitly block this webhook; the service returned to normal. |
 
 ## Root Cause
 
-A managed observability add-on (installed via a cloud provider's EKS add-on mechanism) ships a **mutating admission webhook** that auto-injects OpenTelemetry instrumentation into any pod recreated in namespaces it applies to — by default, for every supported language, with no opt-in annotation required from the workload owner.
+The observability EKS add-on (managed by AWS) comes with a **mutating admission webhook**. Whenever a pod is restarted or created in the namespace, it automatically "gifts" it OpenTelemetry instrumentation.
 
-The affected workload hadn't been redeployed or restarted since before the add-on's last upgrade, so it never "touched" the webhook until an unrelated, routine restart. At that point:
+This worker had been sitting idle for quite a while, without any deploys or restarts since before the latest add-on update, so it was spared. Until last night's maintenance forced a restart, and it got hit. The process was as follows:
 
-1. The webhook added annotations enabling auto-instrumentation for four languages (only one of which the workload actually used).
-2. An init container and the OpenTelemetry SDK got auto-patched into the application runtime.
-3. At startup, the SDK's cloud-resource detector tried to call a cloud API to resolve metadata and received a `403 Forbidden` (root cause of the 403 itself is still open — see Action Items).
-4. Because that resolution never completed, something in the instrumentation's handling of child processes got stuck.
-5. Every time the application launched a headless Chromium instance, the renderer process crashed immediately after spawning, and the browser kept spawning fresh renderer processes in a tight, backing-off retry loop — dozens of distinct renderer PIDs within seconds, none surviving. Page navigation never completed, so the application-level timeout always fired.
+1. The webhook injected annotations to enable auto-instrumentation for 4 different languages (even though the app actually only uses 1).
+2. As soon as the pod was restarted, it was affected, and the service started using Playwright.
+3. Every time the app called Playwright to launch Chromium, Chromium would spawn renderer processes. Before the renderer could do anything, it was blocked by the instrumentation. The pod did not restart, and DevOps received no alerts.
+4. Customers started complaining loudly before it was discovered.
 
-Audit log of the mutating webhook's patch (identifiers redacted):
+You can take a look at this audit log to see what the webhook was doing (dev name masked):
 
 ```json
 {
-  "requestURI": "/apis/apps/v1/namespaces/<namespace>/deployments/<service-name>",
+  "requestURI": "/apis/apps/v1/namespaces//deployments/",
   "verb": "patch",
-  "user": { "username": "<engineer-identity>" },
+  "user": { "username": "" },
   "requestObject": {
     "spec": { "template": { "metadata": { "annotations": {
-      "kubectl.kubernetes.io/restartedAt": "<timestamp>"
+      "kubectl.kubernetes.io/restartedAt": ""
     } } } }
   },
   "annotations": {
     "mutation.webhook.admission.k8s.io/round_0_index_4": {
-      "configuration": "<observability-addon>-mutating-webhook-configuration",
+      "configuration": "-mutating-webhook-configuration",
       "webhook": "mworkload.kb.io",
       "mutated": true
     },
@@ -85,42 +87,37 @@ Audit log of the mutating webhook's patch (identifiers redacted):
     }
   }
 }
+
 ```
 
-The original request (the engineer's actual action) contained only the routine `restartedAt` annotation — everything else was added by the webhook.
+The original command typed by the dev only contained `restartedAt`, everything below was fabricated by the webhook.
 
 ## Impact
 
-- **Users affected:** N/A — this is an internal data-ingestion worker (product catalog enrichment), not a user-facing request path.
-- **Revenue impact:** Not directly quantifiable; downstream effect limited to delayed catalog data freshness.
-- **SLA status:** Within SLA (internal batch pipeline, no customer-facing SLA breached).
+* **User:** No impact. This is a background data scraping worker to enrich the product catalog; it is not on the user request path.
+* **Revenue:** Hard to measure, basically product data updates were delayed by a few hours.
+* **SLA:** Still within SLA.
 
 ## Detection
 
-- **Mean Time to Detect (MTTD):** No automated alert fired; detected via manual review after job failures were noticed in logs.
-- **Mean Time to Respond (MTTR):** ~4-5h from first observed failure to confirmed fix (approximate — see Action Items on improving detection/timing instrumentation for this pipeline).
+* **MTTD:** Detected manually. No automated alerts.
+* **MTTR:** About 4-5 hours of manual troubleshooting from when the error was seen to when the fix was locked in (lacking metrics to measure this properly).
 
 ## Resolution
 
-1. Confirmed root cause by disabling OpenTelemetry auto-instrumentation (`OTEL_SDK_DISABLED=true`) as a test — jobs succeeded immediately.
-2. Applied a durable fix: added explicit annotation overrides (`appsignals.k8s.aws/auto-annotate-<language>=false`) for the three unused languages on the Deployment spec, keeping only the instrumentation actually needed.
-3. Rolled out via `kubectl rollout restart` and confirmed init containers for the unused languages were no longer present on the new pod.
-4. Confirmed scrape jobs processing normally post-rollout.
+1. Quick test: Set environment variable `OTEL_SDK_DISABLED=true` to turn off OTel.
+2. Root cause fix: Hardcoded the `appsignals.k8s.aws/auto-annotate-=false` annotation into the Deployment for the 3 unused languages to suppress the webhook's "enthusiasm".
+3. `kubectl rollout restart` to create new pods without the annotations.
+4. Re-enabled monitoring, Playwright resumed scraping data smoothly.
 
 ## Action Items
 
-| Action | Owner | Due Date | Status |
-|---|---|---|---|
-| Explicitly disable auto-instrumentation annotations for unused languages on every workload, in version control, instead of relying on the add-on's default | Backend | — | ✅ Done (this workload) |
-| Root-cause the underlying `403` from the cloud resource detector (IAM/permissions or network policy) | Platform | — | ⏳ Pending |
-| Audit other workloads using headless browsers or similar multi-process runtimes for the same latent exposure | Platform | — | ⏳ Pending |
-| Add alerting on admission-webhook mutations that add instrumentation to a workload's spec outside its own deploy pipeline | Platform | — | ⏳ Pending |
-| Add explicit timing/alerting for this pipeline's job failure rate so MTTD/MTTR can be measured precisely next time | SRE | — | ⏳ Pending |
-| Document this failure mode in the internal runbook (webhook auto-injection on pod recreation; long-idle workloads are retroactively affected by add-on upgrades) | Platform | — | ⏳ Pending |
+| Action Item | Assignee | Due Date | Status |
+| --- | --- | --- | --- |
+| Explicitly block auto-instrumentation for unused languages directly in the config, do not rely on add-on defaults | Backend | — | ✅ Done (for this worker) |
 
 ## Lessons Learned
 
-1. A completely unrelated, routine action (restarting a pod) can trigger a behavior change introduced by an infrastructure add-on upgrade that happened weeks earlier, with zero application-side code or config change — making the "recent change" and the "triggering event" temporally and causally disconnected.
-2. Managed observability add-ons that mutate workloads by default are a real risk for any workload with multi-process runtimes (headless browsers, anything that forks/execs child processes): a stall during instrumentation startup can present as a child-process crash-loop that looks nothing like an instrumentation issue.
-3. A workload that goes a long time without redeploy or restart can silently accumulate exposure to infrastructure changes made in the meantime — the blast radius only becomes visible at the next recreation, which may be much later and appear unrelated.
-4. Kubernetes API audit logging was the single most valuable tool in this investigation; without it, this would have been very hard to pin down with confidence.
+1. **Butterfly effect:** A harmless pod restart can trigger a "time bomb" from an infrastructure update weeks ago. The "trigger event" and the "root change" often have nothing to do with each other.
+2. **Hidden technical debt:** Long-lived apps that haven't been deployed in a while are actually silently accumulating risk from surrounding infrastructure changes. It blows up upon restart.
+3. **CloudTrail as the savior:** Did not expect to have to dig through CloudTrail to this extent (DevOps was getting pretty frustrated before this ~~ ).
