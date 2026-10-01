@@ -11,7 +11,7 @@ services:
 
 * "Product Data Worker"
 * "Playwright / Chromium"
-author: "Team Backend / Platform"
+author: "Phú Nguyễn"
 tags:
 * "kubernetes"
 * "eks"

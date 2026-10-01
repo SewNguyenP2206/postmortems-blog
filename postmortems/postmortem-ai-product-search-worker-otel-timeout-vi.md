@@ -11,7 +11,7 @@ services:
 
 * "Search service (staging)"
 * "Elasticsearch (staging)"
-author: "TBD"
+author: "Phú Nguyễn"
 tags:
 * "elasticsearch"
 * "tls"
