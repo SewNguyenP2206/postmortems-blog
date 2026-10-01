@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Postmortem | DevOps Incident Review</title>
+  <meta name="description" content="Detailed postmortem and root cause analysis for a production incident." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- marked.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    /* Post page full-width layout override */
+    .site-wrapper {
+      grid-template-columns: 1fr;
+    }
+    .main-content {
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="site-wrapper">
+
+  <!-- ═══ HEADER ══════════════════════════════════════════════ -->
+  <header class="site-header">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">💀</div>
+      <div class="logo-text">
+        <span class="logo-title">PostMortem.dev</span>
+        <span class="logo-subtitle">incident · review · learn</span>
+      </div>
+    </a>
+    <div class="header-meta">
+      <span id="post-breadcrumb" style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono)">
+        <a href="index.html" style="color:var(--text-muted);text-decoration:none">postmortems</a>
+        <span style="margin:0 6px">/</span>
+        <span style="color:var(--text-primary)" id="breadcrumb-slug">loading...</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- ═══ POST LAYOUT ══════════════════════════════════════════ -->
+  <main class="main-content">
+    <div class="post-layout">
+
+      <!-- Left: Post Content -->
+      <div class="post-content-wrapper">
+        <a href="index.html" class="post-back-btn" id="back-btn">
+          ← Back to all postmortems
+        </a>
+
+        <!-- Severity accent bar -->
+        <div id="sev-accent-bar" style="height:3px;border-radius:2px;margin-bottom:24px;background:var(--border);transition:background 0.3s"></div>
+
+        <div class="post-page-header">
+          <h1 class="post-page-title" id="post-title">Loading postmortem...</h1>
+          <div style="margin-bottom:14px" id="post-badges"></div>
+          <div class="post-page-meta" id="post-meta-row"></div>
+        </div>
+
+        <!-- Rendered Markdown -->
+        <article class="markdown-body" id="post-body">
+          <div class="loading-state">
+            <div class="loading-icon">⚙</div>
+            <div class="terminal-line">fetching postmortem<span class="blink">_</span></div>
+          </div>
+        </article>
+
+        <!-- Bottom nav -->
+        <div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <a href="index.html" class="post-back-btn">← All Incidents</a>
+          <button onclick="window.scrollTo({top:0,behavior:'smooth'})"
+            style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;color:var(--text-secondary);cursor:pointer;font-size:12px;font-family:var(--font-mono);transition:var(--transition)"
+            onmouseover="this.style.color='var(--text-primary)'"
+            onmouseout="this.style.color='var(--text-secondary)'"
+          >↑ Back to top</button>
+        </div>
+      </div>
+
+      <!-- Right: Info Panel + TOC -->
+      <div class="info-panel">
+
+        <!-- Incident Details -->
+        <div class="info-card">
+          <div class="info-card-title">Incident Details</div>
+          <div class="info-row">
+            <span class="info-row-label">Severity</span>
+            <span id="info-severity">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Status</span>
+            <span id="info-status">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Date</span>
+            <span class="info-row-value" id="info-date">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Duration</span>
+            <span class="info-row-value" id="info-duration">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Author</span>
+            <span class="info-row-value" id="info-author">—</span>
+          </div>
+        </div>
+
+        <!-- Services -->
+        <div class="info-card">
+          <div class="info-card-title">Affected Services</div>
+          <div id="info-services" class="post-services"></div>
+        </div>
+
+        <!-- Tags -->
+        <div class="info-card">
+          <div class="info-card-title">Tags</div>
+          <div id="info-tags" class="tags-list"></div>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="post-toc">
+          <div class="toc-title">On This Page</div>
+          <ul class="toc-list" id="toc-list">
+            <li style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono);padding:4px 8px">Loading...</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <span>PostMortem.dev · Built with transparency</span>
+    <div class="footer-right">
+      <a href="index.html" style="color:var(--accent-green);text-decoration:none">← All Incidents</a>
+    </div>
+  </footer>
+
+</div>
+
+<script src="postmortems/manifest.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // Set breadcrumb slug
+  const slug = new URLSearchParams(location.search).get('slug') || '';
+  document.getElementById('breadcrumb-slug').textContent = slug;
+</script>
+<script src="js/post.js"></script>
+</body>
+</html>

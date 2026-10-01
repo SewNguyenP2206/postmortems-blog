@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOps Postmortems | Incident Review Blog</title>
+  <meta name="description" content="A transparent record of production incidents, root cause analyses, and engineering learnings from our DevOps team." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <style>
+    /* Extra index-only styles */
+    .toolbar { justify-content: space-between; }
+  </style>
+</head>
+<body>
+<div class="site-wrapper">
+
+  <!-- ═══ HEADER ══════════════════════════════════════════════ -->
+  <header class="site-header">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">💀</div>
+      <div class="logo-text">
+        <span class="logo-title">PostMortem.dev</span>
+        <span class="logo-subtitle">incident · review · learn</span>
+      </div>
+    </a>
+
+    <div class="header-meta">
+      <div class="system-status">
+        <div class="status-dot"></div>
+        All systems operational
+      </div>
+      <div class="header-divider"></div>
+      <div class="header-stat">
+        <span class="stat-value" id="stat-total">—</span>
+        <span class="stat-label">Incidents</span>
+      </div>
+      <div class="header-divider"></div>
+      <div class="header-stat" style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)" id="utc-clock"></div>
+    </div>
+  </header>
+
+  <!-- ═══ SIDEBAR ═════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <!-- Navigation -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <a href="index.html" class="sidebar-item active" data-filter="all" id="nav-all">
+        <div class="sidebar-item-left">
+          <span class="sidebar-item-icon">📋</span>
+          All Incidents
+        </div>
+        <span class="sidebar-badge" id="count-all">—</span>
+      </a>
+      <a href="#" class="sidebar-item" data-filter="resolved">
+        <div class="sidebar-item-left">
+          <span class="sidebar-item-icon">✅</span>
+          Resolved
+        </div>
+      </a>
+      <a href="#" class="sidebar-item" data-filter="ongoing">
+        <div class="sidebar-item-left">
+          <span class="sidebar-item-icon">🔴</span>
+          Ongoing
+        </div>
+      </a>
+    </div>
+
+    <!-- Severity Filter -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Severity</div>
+      <div class="filter-group">
+        <div class="filter-chip" data-filter="p0">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="sev-dot" style="background:var(--sev-p0)"></div>
+            <span style="font-size:13px;color:var(--text-secondary)">P0 – Critical</span>
+          </div>
+          <span class="chip-count" id="count-p0">0</span>
+        </div>
+        <div class="filter-chip" data-filter="p1">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="sev-dot" style="background:var(--sev-p1)"></div>
+            <span style="font-size:13px;color:var(--text-secondary)">P1 – High</span>
+          </div>
+          <span class="chip-count" id="count-p1">0</span>
+        </div>
+        <div class="filter-chip" data-filter="p2">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="sev-dot" style="background:var(--sev-p2)"></div>
+            <span style="font-size:13px;color:var(--text-secondary)">P2 – Medium</span>
+          </div>
+          <span class="chip-count" id="count-p2">0</span>
+        </div>
+        <div class="filter-chip" data-filter="p3">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="sev-dot" style="background:var(--sev-p3)"></div>
+            <span style="font-size:13px;color:var(--text-secondary)">P3 – Low</span>
+          </div>
+          <span class="chip-count" id="count-p3">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Uptime History -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Incident History (30d)</div>
+      <div style="padding:0 16px">
+        <div id="uptime-bar" class="uptime-bar"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--text-muted);font-family:var(--font-mono)">
+          <span>30d ago</span>
+          <span>today</span>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--text-muted)">
+          <span><span style="color:var(--accent-green)">■</span> Clean</span>
+          <span><span style="color:var(--sev-p0)">■</span> Incident</span>
+          <span><span style="color:var(--sev-p1)">■</span> Degraded</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resources -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Resources</div>
+      <a href="https://sre.google/sre-book/postmortem-culture/" target="_blank" class="sidebar-item">
+        <div class="sidebar-item-left">
+          <span class="sidebar-item-icon">📖</span>
+          Google SRE Book
+        </div>
+      </a>
+      <a href="https://github.com" target="_blank" class="sidebar-item">
+        <div class="sidebar-item-left">
+          <span class="sidebar-item-icon">🐙</span>
+          GitHub Repo
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ════════════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- Stats Banner -->
+    <div class="stats-banner">
+      <div class="stat-card">
+        <div class="stat-icon total">📊</div>
+        <div class="stat-info">
+          <div class="stat-number" id="stat-total-2">—</div>
+          <div class="stat-desc">Total Incidents</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon p0">🔥</div>
+        <div class="stat-info">
+          <div class="stat-number" id="stat-p0" style="color:var(--sev-p0)">—</div>
+          <div class="stat-desc">P0 Critical</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon resolved">✅</div>
+        <div class="stat-info">
+          <div class="stat-number" id="stat-resolved" style="color:var(--status-resolved)">—</div>
+          <div class="stat-desc">Resolved</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon mttr">⏱</div>
+        <div class="stat-info">
+          <div class="stat-number" id="stat-mttr" style="color:var(--accent-purple)">—</div>
+          <div class="stat-desc">Avg MTTR</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M10.68 11.74a6 6 0 01-7.922-8.982 6 6 0 018.982 7.922l3.04 3.04a.749.749 0 01-.326 1.275.749.749 0 01-.734-.215L10.68 11.74zm-5.68.26a4.5 4.5 0 100-9 4.5 4.5 0 000 9z"/></svg>
+          <input
+            type="text"
+            id="search-input"
+            class="search-input"
+            placeholder="Search incidents, services, tags..."
+            aria-label="Search postmortems"
+          />
+        </div>
+        <select id="sort-select" class="sort-select" aria-label="Sort postmortems">
+          <option value="date-desc">Newest First</option>
+          <option value="date-asc">Oldest First</option>
+          <option value="severity">By Severity</option>
+          <option value="duration">By Duration</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <span id="results-count" style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono)"></span>
+        <div class="view-toggle">
+          <button class="view-btn active" id="view-list" title="List view" aria-label="List view">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M2 4.75a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 4a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H2.75A.75.75 0 012 8.75zm0 4a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H2.75A.75.75 0 012 12.75z"/></svg>
+          </button>
+          <button class="view-btn" id="view-grid" title="Grid view" aria-label="Grid view">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path d="M1 2.5A1.5 1.5 0 012.5 1h3A1.5 1.5 0 017 2.5v3A1.5 1.5 0 015.5 7h-3A1.5 1.5 0 011 5.5v-3zm8.5 0A1.5 1.5 0 0111 1h3a1.5 1.5 0 011.5 1.5v3A1.5 1.5 0 0114 7h-3a1.5 1.5 0 01-1.5-1.5v-3zm-8.5 8A1.5 1.5 0 012.5 9h3A1.5 1.5 0 017 10.5v3A1.5 1.5 0 015.5 15h-3A1.5 1.5 0 011 13.5v-3zm8.5 0A1.5 1.5 0 0111 9h3a1.5 1.5 0 011.5 1.5v3a1.5 1.5 0 01-1.5 1.5h-3a1.5 1.5 0 01-1.5-1.5v-3z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Posts Container -->
+    <div class="posts-grid" id="posts-container">
+      <!-- rendered by main.js -->
+    </div>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <span>PostMortem.dev · Built with transparency</span>
+    <div class="footer-right">
+      <span>Powered by GitHub Pages</span>
+      <span>·</span>
+      <a href="https://github.com" target="_blank" style="color:var(--accent-green);text-decoration:none">View Source →</a>
+    </div>
+  </footer>
+
+</div><!-- end .site-wrapper -->
+
+<!-- Toast notification (optional) -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toast-msg">New postmortem added</span>
+</div>
+
+<script src="postmortems/manifest.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
