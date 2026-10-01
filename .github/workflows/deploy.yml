@@ -1,4 +1,4 @@
-name: 🔄 Generate Postmortem Manifest & Deploy
+name: 🚀 Generate Postmortem Manifest & Deploy
 
 on:
   push:
@@ -17,17 +17,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write        # Needed to push manifest.json back to repo
+  contents: read
   pages: write
   id-token: write
 
 jobs:
-  # ──────────────────────────────────────────────────────────────
-  # JOB 1: Scan postmortems/ folder and generate manifest.json
-  # ──────────────────────────────────────────────────────────────
-  build-manifest:
-    name: 📋 Generate manifest.json
+  deploy:
+    name: 🚀 Build and Deploy to GitHub Pages
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
@@ -106,38 +106,6 @@ jobs:
 
           print("✅ manifest.json and manifest.js generated successfully")
           PYEOF
-
-      - name: Commit manifest files
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
-          git add .nojekyll postmortems/manifest.json postmortems/manifest.js
-
-          if git diff --staged --quiet; then
-            echo "✅ manifest files unchanged – no commit needed"
-          else
-            git commit -m "chore: update postmortems manifest [skip ci]"
-            git push
-            echo "✅ manifest files committed and pushed"
-          fi
-
-  # ──────────────────────────────────────────────────────────────
-  # JOB 2: Deploy to GitHub Pages
-  # ──────────────────────────────────────────────────────────────
-  deploy:
-    name: 🚀 Deploy to GitHub Pages
-    runs-on: ubuntu-latest
-    needs: build-manifest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Checkout (with updated manifest)
-        uses: actions/checkout@v4
-        with:
-          ref: main    # Pull latest commit (includes manifest.json)
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5

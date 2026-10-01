@@ -120,9 +120,8 @@ The workflow triggers on every push to `main` that touches `postmortems/*.md` or
 
 It:
 1. Scans `postmortems/` for all `*.md` files
-2. Generates `postmortems/manifest.json` (sorted newest-first)
-3. Commits `manifest.json` back to `main`
-4. Deploys the entire site to GitHub Pages
+2. Generates `postmortems/manifest.json` and `manifest.js` in the Actions runner (sorted newest-first)
+3. Deploys the generated site to GitHub Pages without committing generated files back to `main`
 
 ---
 
