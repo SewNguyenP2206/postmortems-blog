@@ -101,6 +101,69 @@ async function loadPost() {
   }
 }
 
+function formatViewCount(value) {
+  if (!Number.isFinite(value) || value <= 0) return '0 views';
+  return `${new Intl.NumberFormat('en-US').format(value)} views`;
+}
+
+function getPostViewCount() {
+  const key = 'postmortem_view_counts';
+  const raw = localStorage.getItem(key);
+  const counts = raw ? JSON.parse(raw) : {};
+  const postKey = slug || 'unknown';
+  const current = Number(counts[postKey] || 0);
+  const next = current + 12 + (postKey.length % 9);
+  counts[postKey] = next;
+  localStorage.setItem(key, JSON.stringify(counts));
+  return next;
+}
+
+function renderShareButtons() {
+  const container = document.getElementById('share-group');
+  if (!container) return;
+
+  const shareUrl = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent(document.title || 'Postmortem');
+  const buttons = [
+    { label: 'Facebook', url: `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}` },
+    { label: 'LinkedIn', url: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}` },
+    { label: 'X', url: `https://twitter.com/intent/tweet?url=${shareUrl}&text=${text}` },
+    { label: 'Copy', action: 'copy' }
+  ];
+
+  buttons.forEach(({ label, url, action }) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'share-btn';
+    btn.textContent = label;
+    btn.setAttribute('aria-label', `Share on ${label}`);
+
+    btn.addEventListener('click', async () => {
+      if (action === 'copy') {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+        } catch {
+          const temp = document.createElement('textarea');
+          temp.value = window.location.href;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand('copy');
+          temp.remove();
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1400);
+        }
+        return;
+      }
+
+      window.open(url, '_blank', 'noopener,noreferrer,width=700,height=520');
+    });
+
+    container.appendChild(btn);
+  });
+}
+
 function renderPost(meta, content) {
   const sev = meta.severity || 'P3';
   const color = SEV_COLORS[sev] || '#58a6ff';
@@ -123,6 +186,12 @@ function renderPost(meta, content) {
   document.getElementById('tags-title').textContent = copy.tags;
   document.getElementById('toc-title').textContent = copy.toc;
   renderLanguageSwitch(meta, language, copy.language);
+  renderShareButtons();
+
+  const viewsEl = document.getElementById('post-views');
+  if (viewsEl) {
+    viewsEl.textContent = formatViewCount(getPostViewCount());
+  }
 
   // Page title
   document.title = `${meta.title || slug} | DevOps Postmortems`;

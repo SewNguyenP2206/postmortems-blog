@@ -743,6 +743,15 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.post-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
 .post-page-title {
   font-size: 26px;
   font-weight: 700;
@@ -751,6 +760,49 @@ body {
   letter-spacing: -0.4px;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.post-views {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+.share-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.share-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.share-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+  background: var(--accent-blue-glow);
 }
 
 .post-page-meta {
