@@ -23,6 +23,44 @@ function escapeHtml(str) {
 }
 
 // ─── Frontmatter parser ──────────────────────────────────────
+function stripInlineYamlComment(value) {
+  if (typeof value !== 'string') return value;
+
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let escaped = false;
+
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (ch === '\\' && inDoubleQuote) {
+      escaped = true;
+      continue;
+    }
+
+    if (ch === "'" && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote;
+      continue;
+    }
+
+    if (ch === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+      continue;
+    }
+
+    if (ch === '#' && !inSingleQuote && !inDoubleQuote) {
+      return value.slice(0, i).trim();
+    }
+  }
+
+  return value.trim();
+}
+
 function parseFrontmatter(raw) {
   const match = raw.match(/^---\n([\s\S]+?)\n---\n?([\s\S]*)$/);
   if (!match) return { meta: {}, content: raw };
@@ -31,7 +69,7 @@ function parseFrontmatter(raw) {
   match[1].split('\n').forEach(line => {
     const [key, ...rest] = line.split(':');
     if (!key) return;
-    let val = rest.join(':').trim();
+    let val = stripInlineYamlComment(rest.join(':').trim());
     // Array: ["a", "b"]
     const arr = val.match(/^\[(.*)\]$/);
     if (arr) {
