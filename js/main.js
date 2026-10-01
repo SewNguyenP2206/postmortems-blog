@@ -1,4 +1,5 @@
 // ─── main.js – Index page logic ─────────────────────────────
+(() => {
 const { parseFrontmatter, fmtDate, sevClass, statusClass, statusIcon, SEV_COLORS, ICONS } = window.BlogUtils;
 
 let ALL_POSTS = [];
@@ -288,3 +289,4 @@ updateClock();
 
 // ─── Init ────────────────────────────────────────────────────
 loadPosts();
+})();

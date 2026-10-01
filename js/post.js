@@ -1,4 +1,5 @@
 // ─── post.js – Individual post page ─────────────────────────
+(() => {
 const { parseFrontmatter, fmtDate, sevClass, statusClass, statusIcon, SEV_COLORS, ICONS, marked } = window.BlogUtils;
 
 const params = new URLSearchParams(location.search);
@@ -185,3 +186,4 @@ function escapeHTML(str) {
 
 // ─── Init ────────────────────────────────────────────────────
 loadPost();
+})();
