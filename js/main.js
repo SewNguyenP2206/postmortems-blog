@@ -55,7 +55,9 @@ async function loadPosts() {
       throw new Error('No postmortems found');
     }
 
-    ALL_POSTS = posts.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    ALL_POSTS = posts
+      .filter(post => post.language !== 'vi')
+      .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
     updateStats();
     applyFilters();
   } catch (e) {

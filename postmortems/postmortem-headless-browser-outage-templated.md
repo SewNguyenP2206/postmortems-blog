@@ -1,6 +1,8 @@
 ---
 title: "Product Data Worker – Playwright Renderer Crash-Loop from Silent OTel Injection"
 date: "2026-09-25"
+language: en
+translation: "postmortem-headless-browser-outage-templated-vi"
 severity: "P1"
 status: "resolved"
 duration: "~4-5h (approx. — not precisely tracked, see Action Items)"

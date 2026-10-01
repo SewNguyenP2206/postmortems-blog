@@ -4,6 +4,40 @@ const { parseFrontmatter, fmtDate, sevClass, statusClass, statusIcon, SEV_COLORS
 
 const params = new URLSearchParams(location.search);
 const slug = params.get('slug');
+const PAGE_COPY = {
+  en: {
+    breadcrumb: 'postmortems',
+    back: 'Back to all postmortems',
+    allPosts: 'All Incidents',
+    incidentDetails: 'Incident Details',
+    severity: 'Severity',
+    status: 'Status',
+    date: 'Date',
+    duration: 'Duration',
+    author: 'Author',
+    services: 'Affected Services',
+    tags: 'Tags',
+    toc: 'On This Page',
+    language: 'Post language',
+    statuses: { resolved: 'resolved', ongoing: 'ongoing', monitoring: 'monitoring' }
+  },
+  vi: {
+    breadcrumb: 'bài phân tích',
+    back: 'Quay lại danh sách sự cố',
+    allPosts: 'Tất cả sự cố',
+    incidentDetails: 'Thông tin sự cố',
+    severity: 'Mức độ',
+    status: 'Trạng thái',
+    date: 'Ngày',
+    duration: 'Thời lượng',
+    author: 'Tác giả',
+    services: 'Dịch vụ bị ảnh hưởng',
+    tags: 'Thẻ',
+    toc: 'Trong bài viết',
+    language: 'Ngôn ngữ bài viết',
+    statuses: { resolved: 'đã khắc phục', ongoing: 'đang diễn ra', monitoring: 'đang theo dõi' }
+  }
+};
 
 async function loadPost() {
   if (!slug) { showError('No post slug provided'); return; }
@@ -70,6 +104,25 @@ async function loadPost() {
 function renderPost(meta, content) {
   const sev = meta.severity || 'P3';
   const color = SEV_COLORS[sev] || '#58a6ff';
+  const language = meta.language === 'vi' ? 'vi' : 'en';
+  const copy = PAGE_COPY[language];
+  const status = copy.statuses[meta.status] || meta.status || copy.statuses.resolved;
+
+  document.documentElement.lang = language;
+  document.getElementById('breadcrumb-label').textContent = copy.breadcrumb;
+  document.getElementById('back-btn').textContent = `← ${copy.back}`;
+  document.getElementById('all-posts-bottom').textContent = `← ${copy.allPosts}`;
+  document.getElementById('all-posts-footer').textContent = `← ${copy.allPosts}`;
+  document.getElementById('incident-details-title').textContent = copy.incidentDetails;
+  document.getElementById('severity-label').textContent = copy.severity;
+  document.getElementById('status-label').textContent = copy.status;
+  document.getElementById('date-label').textContent = copy.date;
+  document.getElementById('duration-label').textContent = copy.duration;
+  document.getElementById('author-label').textContent = copy.author;
+  document.getElementById('services-title').textContent = copy.services;
+  document.getElementById('tags-title').textContent = copy.tags;
+  document.getElementById('toc-title').textContent = copy.toc;
+  renderLanguageSwitch(meta, language, copy.language);
 
   // Page title
   document.title = `${meta.title || slug} | DevOps Postmortems`;
@@ -82,12 +135,12 @@ function renderPost(meta, content) {
   badgesEl.innerHTML = `
     <span class="badge ${sevClass(sev)}" style="font-size:13px;padding:4px 12px">${sev}</span>
     <span class="badge ${statusClass(meta.status)}" style="font-size:13px;padding:4px 12px">
-      ${statusIcon(meta.status)} ${meta.status || 'resolved'}
+      ${statusIcon(meta.status)} ${status}
     </span>`;
 
   // Meta row
   document.getElementById('post-meta-row').innerHTML = `
-    <span class="meta-item" style="font-size:13px">${ICONS.calendar} ${fmtDate(meta.date)}</span>
+    <span class="meta-item" style="font-size:13px">${ICONS.calendar} ${fmtDateForLanguage(meta.date, language)}</span>
     ${meta.duration ? `<span class="meta-item" style="font-size:13px">${ICONS.clock} ${meta.duration}</span>` : ''}
     ${meta.author ? `<span class="meta-item" style="font-size:13px">${ICONS.person} ${escapeHTML(meta.author)}</span>` : ''}`;
 
@@ -98,8 +151,8 @@ function renderPost(meta, content) {
   document.getElementById('info-severity').innerHTML =
     `<span class="badge ${sevClass(sev)}">${sev}</span>`;
   document.getElementById('info-status').innerHTML =
-    `<span class="badge ${statusClass(meta.status)}">${statusIcon(meta.status)} ${meta.status || 'resolved'}</span>`;
-  document.getElementById('info-date').textContent = fmtDate(meta.date);
+    `<span class="badge ${statusClass(meta.status)}">${statusIcon(meta.status)} ${status}</span>`;
+  document.getElementById('info-date').textContent = fmtDateForLanguage(meta.date, language);
   document.getElementById('info-duration').textContent = meta.duration || '—';
   document.getElementById('info-author').textContent = meta.author || '—';
 
@@ -132,6 +185,40 @@ function renderPost(meta, content) {
 
   // Scroll spy
   initScrollSpy();
+}
+
+function renderLanguageSwitch(meta, language, label) {
+  const switcher = document.getElementById('language-switch');
+  switcher.replaceChildren();
+  switcher.setAttribute('aria-label', label);
+
+  if (!meta.translation) {
+    switcher.hidden = true;
+    return;
+  }
+
+  for (const option of ['en', 'vi']) {
+    const link = document.createElement('a');
+    link.className = 'language-option';
+    link.textContent = option.toUpperCase();
+    link.lang = option;
+    link.href = `post.html?slug=${encodeURIComponent(option === language ? slug : meta.translation)}`;
+    if (option === language) link.setAttribute('aria-current', 'page');
+    switcher.append(link);
+  }
+
+  switcher.hidden = false;
+}
+
+function fmtDateForLanguage(date, language) {
+  if (!date) return '—';
+  try {
+    return new Date(date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+  } catch {
+    return date;
+  }
 }
 
 function buildTOC(bodyEl) {
