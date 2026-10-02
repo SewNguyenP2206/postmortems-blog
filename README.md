@@ -146,7 +146,7 @@ Use `blogs/_TEMPLATE.md` as a starting point. Supported categories include AWS, 
 
 ## ⚙️ GitHub Actions Workflow
 
-The workflow triggers on every push to `main` that touches `postmortems/*.md`, `blogs/*.md`, or the site files.
+The workflow triggers on every push to `main` that touches `postmortems/*.md`, `blogs/*.md`, or the site files. It also generates `sitemap.xml` from both Markdown collections; `robots.txt` points crawlers to that sitemap.
 
 It:
 1. Scans `postmortems/` for all `*.md` files
@@ -160,6 +160,7 @@ It:
 ```bash
 # Build the local knowledge-article catalog
 python3 scripts/generate_blog_manifest.py
+python3 scripts/generate_sitemap.py
 
 # Serve locally (Python)
 python3 -m http.server 8080

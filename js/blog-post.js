@@ -1,7 +1,7 @@
 (() => {
   const slug = new URLSearchParams(location.search).get('slug');
   const apiBase = (window.POSTMORTEM_API_BASE || '').replace(/\/+$/, '');
-  const { parseFrontmatter, fmtDate, marked } = window.BlogUtils;
+  const { parseFrontmatter, fmtDate, marked, setPageSEO } = window.BlogUtils;
 
   function escapeHTML(value) {
     return String(value || '').replace(/[&<>"']/g, character => ({
@@ -20,8 +20,28 @@
       if (!response.ok) throw new Error('Không tìm thấy bài viết.');
       const { meta, content } = parseFrontmatter(await response.text());
 
-      document.documentElement.lang = meta.language || 'vi';
-      document.title = `${meta.title || slug} | Knowledge Blog`;
+      const title = meta.title || slug;
+      const description = meta.summary || 'Bài viết kỹ thuật về AWS, Kubernetes và DevOps.';
+      const canonicalUrl = `/blog-post.html?slug=${encodeURIComponent(slug)}`;
+      setPageSEO({
+        title: `${title} | Knowledge Blog`,
+        description,
+        url: canonicalUrl,
+        language: meta.language || 'vi',
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: title,
+          description,
+          datePublished: meta.date,
+          dateModified: meta.updated || meta.date,
+          inLanguage: meta.language || 'vi',
+          author: { '@type': 'Person', name: meta.author || 'PostMortem.dev' },
+          publisher: { '@type': 'Organization', name: 'PostMortem.dev' },
+          mainEntityOfPage: { '@type': 'WebPage', '@id': new URL(canonicalUrl, location.origin).href },
+          keywords: meta.tags || []
+        }
+      });
       document.getElementById('article-category').textContent = meta.category || 'DevOps';
       document.getElementById('article-title').textContent = meta.title || slug;
       document.getElementById('article-summary').textContent = meta.summary || '';

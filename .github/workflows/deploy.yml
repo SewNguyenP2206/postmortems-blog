@@ -8,6 +8,8 @@ on:
       - 'postmortems/**'
       - 'blogs/**'
       - 'scripts/**'
+      - 'robots.txt'
+      - 'sitemap.xml'
       - '.nojekyll'
       - 'CNAME'
       - 'index.html'
@@ -114,6 +116,9 @@ jobs:
 
       - name: Generate blog manifest
         run: python3 scripts/generate_blog_manifest.py
+
+      - name: Generate sitemap
+        run: python3 scripts/generate_sitemap.py
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5

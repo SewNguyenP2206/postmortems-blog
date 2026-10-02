@@ -1,6 +1,6 @@
 // ─── post.js – Individual post page ─────────────────────────
 (() => {
-const { parseFrontmatter, fmtDate, sevClass, statusClass, statusIcon, SEV_COLORS, ICONS, marked } = window.BlogUtils;
+const { parseFrontmatter, fmtDate, sevClass, statusClass, statusIcon, SEV_COLORS, ICONS, marked, setPageSEO } = window.BlogUtils;
 
 const params = new URLSearchParams(location.search);
 const slug = params.get('slug');
@@ -282,8 +282,30 @@ function renderPost(meta, content) {
   renderShareButtons();
   initPostEngagement(language);
 
-  // Page title
-  document.title = `${meta.title || slug} | DevOps Postmortems`;
+  const title = meta.title || slug;
+  const description = meta.summary || 'Postmortem and root cause analysis for a production incident.';
+  const canonicalUrl = `/post.html?slug=${encodeURIComponent(slug)}`;
+  const publicationDate = /^\d{4}-\d{2}-\d{2}$/.test(meta.date || '') ? meta.date : undefined;
+  const modifiedDate = /^\d{4}-\d{2}-\d{2}$/.test(meta.updated || '') ? meta.updated : publicationDate;
+  setPageSEO({
+    title: `${title} | DevOps Postmortems`,
+    description,
+    url: canonicalUrl,
+    language,
+    schema: {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: title,
+      description,
+      datePublished: publicationDate,
+      dateModified: modifiedDate,
+      inLanguage: language,
+      author: { '@type': 'Person', name: meta.author || 'PostMortem.dev' },
+      publisher: { '@type': 'Organization', name: 'PostMortem.dev' },
+      mainEntityOfPage: { '@type': 'WebPage', '@id': new URL(canonicalUrl, location.origin).href },
+      keywords: meta.tags || []
+    }
+  });
 
   // Header
   document.getElementById('post-title').textContent = meta.title || slug;

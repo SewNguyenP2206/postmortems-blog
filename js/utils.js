@@ -106,6 +106,51 @@ function fmtDate(d) {
   } catch { return d; }
 }
 
+function setPageSEO({ title, description, url, type = 'article', image, language = 'vi', schema }) {
+  const pageDescription = String(description || '').trim().replace(/\s+/g, ' ').slice(0, 160);
+  const absoluteUrl = new URL(url || location.pathname, location.origin).href;
+  const absoluteImage = new URL(image || 'assets/sew-logo.png', `${location.origin}/`).href;
+  const canonical = document.querySelector('link[rel="canonical"]') || document.head.appendChild(document.createElement('link'));
+  canonical.rel = 'canonical';
+  canonical.href = absoluteUrl;
+
+  const setMeta = (attribute, key, value) => {
+    let element = document.querySelector(`meta[${attribute}="${key}"]`);
+    if (!element) {
+      element = document.createElement('meta');
+      element.setAttribute(attribute, key);
+      document.head.appendChild(element);
+    }
+    element.content = value;
+  };
+
+  document.title = title;
+  document.documentElement.lang = language;
+  setMeta('name', 'description', pageDescription);
+  setMeta('property', 'og:type', type);
+  setMeta('property', 'og:title', title);
+  setMeta('property', 'og:description', pageDescription);
+  setMeta('property', 'og:url', absoluteUrl);
+  setMeta('property', 'og:image', absoluteImage);
+  setMeta('property', 'og:site_name', 'PostMortem.dev');
+  setMeta('property', 'og:locale', language === 'vi' ? 'vi_VN' : 'en_US');
+  setMeta('name', 'twitter:card', 'summary_large_image');
+  setMeta('name', 'twitter:title', title);
+  setMeta('name', 'twitter:description', pageDescription);
+  setMeta('name', 'twitter:image', absoluteImage);
+
+  if (schema) {
+    let structuredData = document.getElementById('page-structured-data');
+    if (!structuredData) {
+      structuredData = document.createElement('script');
+      structuredData.id = 'page-structured-data';
+      structuredData.type = 'application/ld+json';
+      document.head.appendChild(structuredData);
+    }
+    structuredData.textContent = JSON.stringify(schema);
+  }
+}
+
 // ─── SVG icons (inline) ─────────────────────────────────────
 const ICONS = {
   calendar: `<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.75 0a.75.75 0 01.75.75V2h5V.75a.75.75 0 011.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0113.25 16H2.75A1.75 1.75 0 011 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 014.75 0zm0 3.5h-2a.25.25 0 00-.25.25V6h11V3.75a.25.25 0 00-.25-.25H11.5v.75a.75.75 0 01-1.5 0V3.5h-5v.75a.75.75 0 01-1.5 0V3.5z"/></svg>`,
@@ -122,6 +167,7 @@ const ICONS = {
 window.BlogUtils = {
   parseFrontmatter,
   fmtDate,
+  setPageSEO,
   sevClass,
   statusClass,
   statusIcon,
