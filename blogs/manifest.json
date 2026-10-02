@@ -1,7 +1,22 @@
 {
-  "generated_at": "2026-10-02T07:27:24.479768+00:00",
-  "count": 2,
+  "generated_at": "2026-10-02T10:34:23.346672+00:00",
+  "count": 3,
   "articles": [
+    {
+      "slug": "2026-10-02-Cgroups-who-kills-your-pod",
+      "filename": "2026-10-02-Cgroups-who-kills-your-pod.md",
+      "title": "Ai thực sự đã 'giết' Pod của bạn khi nó cạn kiệt bộ nhớ?",
+      "date": "2026-10-02",
+      "category": "Kubernetes",
+      "tags": [
+        "kubernetes",
+        "linux",
+        "cgroups",
+        "devops"
+      ],
+      "author": "Phú Nguyễn",
+      "summary": "OOMKilled không phải là do kubelet làm với container của bạn — mà là do kernel (nhân hệ điều hành) thực thi một giới hạn mà bạn đã viết trong file YAML. Cùng xắn tay áo tìm hiểu cgroups, cơ chế nằm dưới mọi trường resources.limits, được kiểm chứng trực tiếp trên một cluster thật."
+    },
     {
       "slug": "2026-10-02-K8s-pod-networking",
       "filename": "2026-10-02-K8s-pod-networking.md",
