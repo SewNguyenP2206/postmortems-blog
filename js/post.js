@@ -24,11 +24,8 @@ const PAGE_COPY = {
     unavailable: 'Unavailable',
     like: 'Like',
     liked: 'Liked',
-    analyticsOff: 'Views not counted',
-    allowAnalytics: 'Allow analytics',
-    declineAnalytics: 'No thanks',
     likeUnavailable: 'Like unavailable',
-    engagementPrivacy: 'Optional visit analytics stores a hashed IP, approximate location, device/browser type, and referrer host for 90 days. Raw IP and full browser details are not stored. A browser ID is stored when you like a post.',
+    engagementPrivacy: 'Visit analytics stores a hashed IP, approximate location, device/browser type, and referrer host for 90 days. Raw IP and full browser details are not stored. A browser ID is stored when you like a post.',
     statuses: { resolved: 'resolved', ongoing: 'ongoing', monitoring: 'monitoring' }
   },
   vi: {
@@ -50,11 +47,8 @@ const PAGE_COPY = {
     unavailable: 'Chưa khả dụng',
     like: 'Thích',
     liked: 'Đã thích',
-    analyticsOff: 'Chưa ghi nhận lượt xem',
-    allowAnalytics: 'Cho phép thống kê',
-    declineAnalytics: 'Không, cảm ơn',
     likeUnavailable: 'Like chưa khả dụng',
-    engagementPrivacy: 'Thống kê lượt xem tùy chọn lưu IP dạng băm, vị trí ước tính, loại thiết bị/trình duyệt và tên miền giới thiệu trong 90 ngày. Không lưu IP thô hoặc chuỗi trình duyệt đầy đủ. Khi bạn bấm thích, hệ thống lưu ID trình duyệt để tránh like trùng.',
+    engagementPrivacy: 'Thống kê lượt xem lưu IP dạng băm, vị trí ước tính, loại thiết bị/trình duyệt và tên miền giới thiệu trong 90 ngày. Không lưu IP thô hoặc chuỗi trình duyệt đầy đủ. Khi bạn bấm thích, hệ thống lưu ID trình duyệt để tránh like trùng.',
     statuses: { resolved: 'đã khắc phục', ongoing: 'đang diễn ra', monitoring: 'đang theo dõi' }
   }
 };
@@ -205,42 +199,15 @@ async function togglePostLike(language) {
 }
 
 function initPostEngagement(language) {
-  const consentKey = 'postmortem_analytics_consent';
-  const controls = document.getElementById('engagement-consent');
-  const allowButton = document.getElementById('analytics-allow');
-  const declineButton = document.getElementById('analytics-decline');
   const likeButton = document.getElementById('post-like-button');
-  const views = document.getElementById('post-views');
   const copy = PAGE_COPY[language];
-  const consent = localStorage.getItem(consentKey);
 
-  allowButton.textContent = copy.allowAnalytics;
-  declineButton.textContent = copy.declineAnalytics;
-  controls.hidden = consent === 'accepted';
-  declineButton.hidden = consent === 'declined';
   likeButton.dataset.liked = 'false';
   likeButton.setAttribute('aria-pressed', 'false');
   likeButton.textContent = API_BASE_URL ? copy.like : copy.likeUnavailable;
   likeButton.disabled = !API_BASE_URL;
   likeButton.addEventListener('click', () => togglePostLike(language));
-
-  if (consent === 'accepted') {
-    loadPostEngagement(language);
-    return;
-  }
-
-  views.textContent = copy.analyticsOff;
-
-  allowButton.addEventListener('click', () => {
-    localStorage.setItem(consentKey, 'accepted');
-    controls.hidden = true;
-    loadPostEngagement(language);
-  }, { once: true });
-
-  declineButton.addEventListener('click', () => {
-    localStorage.setItem(consentKey, 'declined');
-    controls.hidden = true;
-  }, { once: true });
+  loadPostEngagement(language);
 }
 
 function renderShareButtons() {

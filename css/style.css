@@ -786,15 +786,6 @@ body {
   line-height: 1.5;
 }
 
-.engagement-consent {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: -4px 0 14px;
-}
-
-.engagement-consent[hidden] { display: none; }
-
 .share-group {
   display: flex;
   align-items: center;
