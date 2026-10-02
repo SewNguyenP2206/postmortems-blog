@@ -1,4 +1,4 @@
-# 💀 PostMortem.dev
+# 💀 DevOps-PostMortem
 
 > A transparent, DevOps-grade postmortem blog hosted on GitHub Pages.
 

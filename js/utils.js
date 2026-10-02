@@ -132,7 +132,7 @@ function setPageSEO({ title, description, url, type = 'article', image, language
   setMeta('property', 'og:description', pageDescription);
   setMeta('property', 'og:url', absoluteUrl);
   setMeta('property', 'og:image', absoluteImage);
-  setMeta('property', 'og:site_name', 'PostMortem.dev');
+  setMeta('property', 'og:site_name', 'DevOps-PostMortem');
   setMeta('property', 'og:locale', language === 'vi' ? 'vi_VN' : 'en_US');
   setMeta('name', 'twitter:card', 'summary_large_image');
   setMeta('name', 'twitter:title', title);

@@ -36,8 +36,8 @@
           datePublished: meta.date,
           dateModified: meta.updated || meta.date,
           inLanguage: meta.language || 'vi',
-          author: { '@type': 'Person', name: meta.author || 'PostMortem.dev' },
-          publisher: { '@type': 'Organization', name: 'PostMortem.dev' },
+          author: { '@type': 'Person', name: meta.author || 'DevOps-PostMortem' },
+          publisher: { '@type': 'Organization', name: 'DevOps-PostMortem' },
           mainEntityOfPage: { '@type': 'WebPage', '@id': new URL(canonicalUrl, location.origin).href },
           keywords: meta.tags || []
         }
