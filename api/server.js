@@ -13,7 +13,7 @@ const app = express();
 const port = Number(process.env.PORT || 3000);
 const eventRetentionDays = Number.parseInt(process.env.VIEW_EVENT_RETENTION_DAYS || '90', 10);
 const allowedOrigins = new Set([
-  'https://postmortems.sewtech.site',
+  'https://www.sewtech.site',
   ...(process.env.ALLOWED_ORIGINS || '').split(',').map(origin => origin.trim()).filter(Boolean)
 ]);
 

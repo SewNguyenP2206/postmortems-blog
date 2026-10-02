@@ -1,31 +1,31 @@
 <?xml version='1.0' encoding='utf-8'?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://postmortems.sewtech.site/</loc>
+    <loc>https://www.sewtech.site/</loc>
   </url>
   <url>
-    <loc>https://postmortems.sewtech.site/blog.html</loc>
+    <loc>https://www.sewtech.site/blog.html</loc>
   </url>
   <url>
-    <loc>https://postmortems.sewtech.site/post.html?slug=postmortem-ai-product-search-worker-otel-timeout-vi</loc>
+    <loc>https://www.sewtech.site/post.html?slug=postmortem-ai-product-search-worker-otel-timeout-vi</loc>
   </url>
   <url>
-    <loc>https://postmortems.sewtech.site/post.html?slug=postmortem-ai-product-search-worker-otel-timeout</loc>
+    <loc>https://www.sewtech.site/post.html?slug=postmortem-ai-product-search-worker-otel-timeout</loc>
   </url>
   <url>
-    <loc>https://postmortems.sewtech.site/post.html?slug=postmortem-headless-browser-outage-templated-vi</loc>
+    <loc>https://www.sewtech.site/post.html?slug=postmortem-headless-browser-outage-templated-vi</loc>
     <lastmod>2026-09-25</lastmod>
   </url>
   <url>
-    <loc>https://postmortems.sewtech.site/post.html?slug=postmortem-headless-browser-outage-templated</loc>
+    <loc>https://www.sewtech.site/post.html?slug=postmortem-headless-browser-outage-templated</loc>
     <lastmod>2026-09-25</lastmod>
   </url>
   <url>
-    <loc>https://postmortems.sewtech.site/blog-post.html?slug=2026-10-02-K8s-pod-networking</loc>
+    <loc>https://www.sewtech.site/blog-post.html?slug=2026-10-02-K8s-pod-networking</loc>
     <lastmod>2026-10-02</lastmod>
   </url>
   <url>
-    <loc>https://postmortems.sewtech.site/blog-post.html?slug=2026-10-02-kubernetes-requests-limits</loc>
+    <loc>https://www.sewtech.site/blog-post.html?slug=2026-10-02-kubernetes-requests-limits</loc>
     <lastmod>2026-10-02</lastmod>
   </url>
 </urlset>

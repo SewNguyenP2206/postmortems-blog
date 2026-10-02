@@ -6,7 +6,7 @@
 
 ## 🔗 Live Site
 
-**[https://YOUR-USERNAME.github.io/YOUR-REPO](https://YOUR-USERNAME.github.io/YOUR-REPO)**
+**[https://www.sewtech.site](https://www.sewtech.site)**
 
 ---
 
@@ -181,7 +181,7 @@ The site is static, so views and likes are stored by the separate API in `api/`.
 
 1. Create a MongoDB Atlas free cluster, database user, and network access rule. For a public Render service, allow Render's outbound addresses or temporarily use `0.0.0.0/0` with a strong database password.
 2. Create a Render Web Service from this repository with **Root Directory** `api`, **Build Command** `npm install`, and **Start Command** `npm start`.
-3. Add Render environment variables: `MONGODB_URI` (Atlas connection string), `MONGODB_DB=postmortems`, `ALLOWED_ORIGINS=https://postmortems.sewtech.site`, `IP_HASH_SECRET` (at least 32 random characters), and `VIEW_EVENT_RETENTION_DAYS=90` (add any other site origins as comma-separated values).
+3. Add Render environment variables: `MONGODB_URI` (Atlas connection string), `MONGODB_DB=postmortems`, `ALLOWED_ORIGINS=https://www.sewtech.site`, `IP_HASH_SECRET` (at least 32 random characters), and `VIEW_EVENT_RETENTION_DAYS=90` (add any other site origins as comma-separated values).
 4. In `js/config.js`, set `POSTMORTEM_API_BASE` to the deployed Render service URL, for example `https://postmortems-api.onrender.com`, then deploy the static site.
 
 For local API development, copy `api/.env.example` to `api/.env`, fill in the Atlas URI, then run `npm install && npm run dev` from `api/`. The API listens on port 3000 by default. Configure `js/config.js` with `http://localhost:3000` while testing locally.
