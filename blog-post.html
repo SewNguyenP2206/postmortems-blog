@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Article | PostMortem.dev</title>
+  <meta name="description" content="Bài viết kỹ thuật về AWS, Kubernetes và DevOps." />
+  <link rel="icon" type="image/png" href="assets/sew-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="site-wrapper single-column">
+  <header class="site-header">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🛠️</div>
+      <div class="logo-text">
+        <span class="logo-title">PostMortem.dev</span>
+        <span class="logo-subtitle">incident · review · learn</span>
+      </div>
+    </a>
+    <a href="blog.html" class="blog-header-link">Knowledge blog</a>
+  </header>
+
+  <main class="main-content">
+    <nav class="section-nav" aria-label="Site sections">
+      <a href="index.html">Incident reports</a>
+      <a href="blog.html" aria-current="page">Knowledge blog</a>
+    </nav>
+    <article class="knowledge-article">
+      <a href="blog.html" class="post-back-btn">← Tất cả bài viết</a>
+      <header class="knowledge-article-header">
+        <div class="knowledge-category" id="article-category">Đang tải</div>
+        <h1 class="post-page-title" id="article-title">Đang tải bài viết...</h1>
+        <p class="knowledge-summary" id="article-summary"></p>
+        <div class="post-page-meta" id="article-meta"></div>
+      </header>
+      <div class="markdown-body" id="article-body">
+        <div class="loading-state"><div class="terminal-line">đang tải nội dung<span class="blink">_</span></div></div>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <span>PostMortem.dev · Built with transparency</span>
+    <div class="footer-right"><a href="blog.html">Knowledge blog</a></div>
+  </footer>
+</div>
+<script src="js/utils.js"></script>
+<script src="js/blog-post.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Blog | PostMortem.dev</title>
+  <meta name="description" content="Bài viết chia sẻ kiến thức thực tế về AWS, Kubernetes và DevOps." />
+  <link rel="icon" type="image/png" href="assets/sew-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="site-wrapper single-column">
+  <header class="site-header">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">🛠️</div>
+      <div class="logo-text">
+        <span class="logo-title">PostMortem.dev</span>
+        <span class="logo-subtitle">incident · review · learn</span>
+      </div>
+    </a>
+    <a href="index.html" class="blog-header-link">Incident reports</a>
+  </header>
+
+  <main class="main-content">
+    <nav class="section-nav" aria-label="Site sections">
+      <a href="index.html">Incident reports</a>
+      <a href="blog.html" aria-current="page">Knowledge blog</a>
+    </nav>
+    <div class="blog-layout">
+      <header class="blog-heading">
+        <p class="eyebrow">FIELD NOTES / ENGINEERING</p>
+        <h1>Knowledge Blog</h1>
+        <p>Chia sẻ kinh nghiệm thực tế về AWS, Kubernetes, platform engineering và DevOps.</p>
+      </header>
+
+      <div class="blog-controls">
+        <label class="search-box">
+          <span class="visually-hidden">Tìm bài viết</span>
+          <input class="search-input" id="blog-search" type="search" placeholder="Tìm theo chủ đề, công nghệ..." />
+        </label>
+        <label>
+          <span class="visually-hidden">Lọc theo chuyên mục</span>
+          <select class="sort-select" id="blog-category">
+            <option value="all">Tất cả chủ đề</option>
+          </select>
+        </label>
+        <span class="blog-results" id="blog-results" aria-live="polite"></span>
+      </div>
+
+      <section class="knowledge-grid" id="blog-list" aria-label="Bài viết">
+        <div class="loading-state"><div class="terminal-line">đang tải bài viết<span class="blink">_</span></div></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <span>PostMortem.dev · Built with transparency</span>
+    <div class="footer-right"><a href="index.html">Incident reports</a></div>
+  </footer>
+</div>
+<script src="js/utils.js"></script>
+<script src="js/blog.js"></script>
+</body>
+</html>

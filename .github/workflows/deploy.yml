@@ -6,10 +6,14 @@ on:
       - main
     paths:
       - 'postmortems/**'
+      - 'blogs/**'
+      - 'scripts/**'
       - '.nojekyll'
       - 'CNAME'
       - 'index.html'
       - 'post.html'
+      - 'blog.html'
+      - 'blog-post.html'
       - 'css/**'
       - 'js/**'
       - '.github/workflows/**'
@@ -107,6 +111,9 @@ jobs:
 
           print("✅ manifest.json and manifest.js generated successfully")
           PYEOF
+
+      - name: Generate blog manifest
+        run: python3 scripts/generate_blog_manifest.py
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5

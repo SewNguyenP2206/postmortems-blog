@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-10-02T04:54:05.362501+00:00",
+  "count": 1,
+  "articles": [
+    {
+      "slug": "2026-10-02-kubernetes-requests-limits",
+      "filename": "2026-10-02-kubernetes-requests-limits.md",
+      "title": "Kubernetes CPU và Memory Requests/Limits: hiểu đúng để tránh OOM",
+      "date": "2026-10-02",
+      "category": "Kubernetes",
+      "tags": [
+        "kubernetes",
+        "resources",
+        "devops"
+      ],
+      "author": "Phú Nguyễn",
+      "summary": "Requests ảnh hưởng đến scheduling; limits đặt ngưỡng runtime. Hiểu khác biệt này giúp tránh throttling và OOMKilled."
+    }
+  ]
+}
