@@ -68,6 +68,7 @@
             <div style="margin-bottom:14px" id="post-badges"></div>
             <div class="post-actions">
               <div class="post-views" id="post-views" aria-live="polite">0 views</div>
+              <button type="button" class="share-btn like-btn" id="post-like-button" disabled aria-pressed="false">Like</button>
               <div class="share-group" id="share-group" aria-label="Share this post"></div>
             </div>
           </div>
@@ -161,6 +162,7 @@
   const slug = new URLSearchParams(location.search).get('slug') || '';
   document.getElementById('breadcrumb-slug').textContent = slug;
 </script>
+<script src="js/config.js"></script>
 <script src="js/post.js"></script>
 </body>
 </html>

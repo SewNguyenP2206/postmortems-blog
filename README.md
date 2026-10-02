@@ -140,6 +140,23 @@ Open: [http://localhost:8080](http://localhost:8080)
 > **Note:** A local manifest.json is needed for the site to work locally.
 > Run the generate script or create one manually.
 
+## 📈 Views and Likes API (MongoDB Atlas + Render)
+
+The site is static, so views and likes are stored by the separate API in `api/`. Create a free MongoDB Atlas cluster and a Render Web Service for the API.
+
+### Deploy the API
+
+1. Create a MongoDB Atlas free cluster, database user, and network access rule. For a public Render service, allow Render's outbound addresses or temporarily use `0.0.0.0/0` with a strong database password.
+2. Create a Render Web Service from this repository with **Root Directory** `api`, **Build Command** `npm install`, and **Start Command** `npm start`.
+3. Add Render environment variables: `MONGODB_URI` (Atlas connection string), `MONGODB_DB=postmortems`, and `ALLOWED_ORIGINS=https://postmortems.sewtech.site` (add any other site origins as comma-separated values).
+4. In `js/config.js`, set `POSTMORTEM_API_BASE` to the deployed Render service URL, for example `https://postmortems-api.onrender.com`, then deploy the static site.
+
+For local API development, copy `api/.env.example` to `api/.env`, fill in the Atlas URI, then run `npm install && npm run dev` from `api/`. The API listens on port 3000 by default. Configure `js/config.js` with `http://localhost:3000` while testing locally.
+
+The API exposes `GET /api/health`, `POST /api/posts/:slug/views`, and `PUT /api/posts/:slug/like`. A page load increments views; each browser gets one toggleable like per post. Counts are public and are not protected against determined abuse, so treat them as lightweight engagement counters rather than audited analytics. Render's free service may sleep when idle, making the first API request slower.
+
+Never put the MongoDB connection string in frontend JavaScript. It belongs only in Render's environment variables or the ignored local `api/.env` file.
+
 ---
 
 ## 📜 License

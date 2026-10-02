@@ -19,6 +19,11 @@ const PAGE_COPY = {
     tags: 'Tags',
     toc: 'On This Page',
     language: 'Post language',
+    views: 'views',
+    loading: 'Loading…',
+    unavailable: 'Unavailable',
+    like: 'Like',
+    liked: 'Liked',
     statuses: { resolved: 'resolved', ongoing: 'ongoing', monitoring: 'monitoring' }
   },
   vi: {
@@ -35,6 +40,11 @@ const PAGE_COPY = {
     tags: 'Thẻ',
     toc: 'Trong bài viết',
     language: 'Ngôn ngữ bài viết',
+    views: 'lượt xem',
+    loading: 'Đang tải…',
+    unavailable: 'Chưa khả dụng',
+    like: 'Thích',
+    liked: 'Đã thích',
     statuses: { resolved: 'đã khắc phục', ongoing: 'đang diễn ra', monitoring: 'đang theo dõi' }
   }
 };
@@ -101,21 +111,85 @@ async function loadPost() {
   }
 }
 
-function formatViewCount(value) {
-  if (!Number.isFinite(value) || value <= 0) return '0 views';
-  return `${new Intl.NumberFormat('en-US').format(value)} views`;
+const API_BASE_URL = (window.POSTMORTEM_API_BASE || '').replace(/\/+$/, '');
+
+function getViewerId() {
+  const storageKey = 'postmortem_viewer_id';
+  let viewerId = localStorage.getItem(storageKey);
+  if (!viewerId) {
+    viewerId = crypto.randomUUID();
+    localStorage.setItem(storageKey, viewerId);
+  }
+  return viewerId;
 }
 
-function getPostViewCount() {
-  const key = 'postmortem_view_counts';
-  const raw = localStorage.getItem(key);
-  const counts = raw ? JSON.parse(raw) : {};
-  const postKey = slug || 'unknown';
-  const current = Number(counts[postKey] || 0);
-  const next = current + 12 + (postKey.length % 9);
-  counts[postKey] = next;
-  localStorage.setItem(key, JSON.stringify(counts));
-  return next;
+function formatViewCount(value, language) {
+  const count = new Intl.NumberFormat(language === 'vi' ? 'vi-VN' : 'en-US').format(value || 0);
+  const label = PAGE_COPY[language].views;
+  return `${count} ${label}`;
+}
+
+async function loadPostEngagement(language) {
+  const viewsEl = document.getElementById('post-views');
+  const likeButton = document.getElementById('post-like-button');
+  const copy = PAGE_COPY[language];
+  if (!viewsEl || !likeButton) return;
+
+  viewsEl.textContent = copy.loading;
+  likeButton.textContent = `${copy.like} · …`;
+
+  if (!API_BASE_URL) {
+    viewsEl.textContent = copy.unavailable;
+    likeButton.textContent = `${copy.like} · ${copy.unavailable}`;
+    return;
+  }
+
+  try {
+    const viewerId = getViewerId();
+    const response = await fetch(`${API_BASE_URL}/api/posts/${encodeURIComponent(slug)}/views`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ viewerId })
+    });
+    if (!response.ok) throw new Error(`Engagement API returned ${response.status}`);
+    updateEngagementUI(await response.json(), language);
+    likeButton.disabled = false;
+    likeButton.addEventListener('click', () => togglePostLike(language), { once: true });
+  } catch (error) {
+    console.warn('Post engagement is unavailable', error);
+    viewsEl.textContent = copy.unavailable;
+    likeButton.textContent = `${copy.like} · ${copy.unavailable}`;
+  }
+}
+
+function updateEngagementUI(stats, language) {
+  const viewsEl = document.getElementById('post-views');
+  const likeButton = document.getElementById('post-like-button');
+  const copy = PAGE_COPY[language];
+  viewsEl.textContent = formatViewCount(stats.views, language);
+  likeButton.textContent = `${stats.liked ? copy.liked : copy.like} · ${new Intl.NumberFormat(language === 'vi' ? 'vi-VN' : 'en-US').format(stats.likes || 0)}`;
+  likeButton.setAttribute('aria-pressed', String(Boolean(stats.liked)));
+  likeButton.dataset.liked = String(Boolean(stats.liked));
+}
+
+async function togglePostLike(language) {
+  const likeButton = document.getElementById('post-like-button');
+  likeButton.disabled = true;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/posts/${encodeURIComponent(slug)}/like`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ viewerId: getViewerId(), liked: likeButton.dataset.liked !== 'true' })
+    });
+    if (!response.ok) throw new Error(`Like API returned ${response.status}`);
+    updateEngagementUI(await response.json(), language);
+  } catch (error) {
+    console.warn('Could not update post like', error);
+  } finally {
+    likeButton.disabled = false;
+    likeButton.addEventListener('click', () => togglePostLike(language), { once: true });
+  }
 }
 
 function renderShareButtons() {
@@ -187,11 +261,7 @@ function renderPost(meta, content) {
   document.getElementById('toc-title').textContent = copy.toc;
   renderLanguageSwitch(meta, language, copy.language);
   renderShareButtons();
-
-  const viewsEl = document.getElementById('post-views');
-  if (viewsEl) {
-    viewsEl.textContent = formatViewCount(getPostViewCount());
-  }
+  loadPostEngagement(language);
 
   // Page title
   document.title = `${meta.title || slug} | DevOps Postmortems`;

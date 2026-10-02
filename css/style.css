@@ -805,6 +805,17 @@ body {
   background: var(--accent-blue-glow);
 }
 
+.share-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.like-btn[aria-pressed="true"] {
+  border-color: var(--accent-green-dim);
+  color: var(--accent-green);
+  background: var(--accent-green-glow);
+}
+
 .post-page-meta {
   display: flex;
   align-items: center;
