@@ -1,5 +1,6 @@
 (() => {
   const slug = new URLSearchParams(location.search).get('slug');
+  const apiBase = (window.POSTMORTEM_API_BASE || '').replace(/\/+$/, '');
   const { parseFrontmatter, fmtDate, marked } = window.BlogUtils;
 
   function escapeHTML(value) {
@@ -29,8 +30,74 @@
         ${meta.author ? `<span class="meta-item">${escapeHTML(meta.author)}</span>` : ''}
         ${(meta.tags || []).map(tag => `<span class="meta-item">#${escapeHTML(tag)}</span>`).join('')}`;
       document.getElementById('article-body').innerHTML = marked.parse(content);
+      initEngagement();
     } catch (error) {
       showError(error.message);
+    }
+  }
+
+  function getViewerId() {
+    const storageKey = 'postmortem_viewer_id';
+    let viewerId = localStorage.getItem(storageKey);
+    if (!viewerId) {
+      viewerId = crypto.randomUUID();
+      localStorage.setItem(storageKey, viewerId);
+    }
+    return viewerId;
+  }
+
+  function renderEngagement(stats) {
+    document.getElementById('blog-views').textContent =
+      `${new Intl.NumberFormat('vi-VN').format(stats.views || 0)} lượt xem`;
+    const likeButton = document.getElementById('blog-like-button');
+    likeButton.textContent = `${stats.liked ? 'Đã thích' : 'Thích'} · ${new Intl.NumberFormat('vi-VN').format(stats.likes || 0)}`;
+    likeButton.dataset.liked = String(Boolean(stats.liked));
+    likeButton.setAttribute('aria-pressed', String(Boolean(stats.liked)));
+  }
+
+  async function initEngagement() {
+    const views = document.getElementById('blog-views');
+    const likeButton = document.getElementById('blog-like-button');
+    const engagementSlug = `blog-${slug}`;
+
+    if (!apiBase) {
+      views.textContent = 'Lượt xem chưa khả dụng';
+      likeButton.textContent = 'Like chưa khả dụng';
+      return;
+    }
+
+    likeButton.disabled = false;
+    likeButton.addEventListener('click', async () => {
+      likeButton.disabled = true;
+      try {
+        const response = await fetch(`${apiBase}/api/posts/${encodeURIComponent(engagementSlug)}/like`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ viewerId: getViewerId(), liked: likeButton.dataset.liked !== 'true' })
+        });
+        if (!response.ok) throw new Error(`Like API returned ${response.status}`);
+        renderEngagement(await response.json());
+      } catch (error) {
+        console.warn('Could not update article like', error);
+        likeButton.textContent = 'Like chưa khả dụng';
+      } finally {
+        likeButton.disabled = likeButton.textContent === 'Like chưa khả dụng';
+      }
+    });
+
+    try {
+      const response = await fetch(`${apiBase}/api/posts/${encodeURIComponent(engagementSlug)}/views`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ viewerId: getViewerId() })
+      });
+      if (!response.ok) throw new Error(`Views API returned ${response.status}`);
+      renderEngagement(await response.json());
+    } catch (error) {
+      console.warn('Article analytics is unavailable', error);
+      views.textContent = 'Lượt xem chưa khả dụng';
+      likeButton.textContent = 'Like chưa khả dụng';
+      likeButton.disabled = true;
     }
   }
 

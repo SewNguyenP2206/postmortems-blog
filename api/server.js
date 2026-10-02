@@ -81,7 +81,19 @@ function getOperatingSystem(userAgent) {
 function getVisitorSnapshot(req, slug, occurredAt = new Date()) {
   const ip = normalizeIp(req.ip);
   const userAgent = req.get('user-agent') || '';
-  const location = ip ? geoip.lookup(ip) : null;
+  const geoLocation = ip ? geoip.lookup(ip) : null;
+  const cloudflareCountry = req.get('cf-ray') ? req.get('cf-ipcountry') : null;
+  const countryCode = geoLocation?.country || (
+    /^[A-Z]{2}$/.test(cloudflareCountry || '') && !['XX', 'T1'].includes(cloudflareCountry)
+      ? cloudflareCountry
+      : null
+  );
+  const location = countryCode ? {
+    countryCode,
+    region: geoLocation?.region || null,
+    city: geoLocation?.city || null,
+    source: geoLocation?.country ? 'geoip-lite' : 'cloudflare'
+  } : null;
   let referrerHost = null;
 
   try {
@@ -95,11 +107,7 @@ function getVisitorSnapshot(req, slug, occurredAt = new Date()) {
     slug,
     occurredAt,
     ipHash: ip ? createHmac('sha256', process.env.IP_HASH_SECRET).update(ip).digest('hex') : null,
-    location: location ? {
-      countryCode: location.country || null,
-      region: location.region || null,
-      city: location.city || null
-    } : null,
+    location,
     device: /iPad|Tablet/i.test(userAgent) ? 'tablet' : /Mobi|iPhone|Android/i.test(userAgent) ? 'mobile' : 'desktop',
     browser: getBrowser(userAgent),
     operatingSystem: getOperatingSystem(userAgent),

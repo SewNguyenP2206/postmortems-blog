@@ -30,3 +30,26 @@ test('stores a keyed IP hash and coarse visitor metadata, not raw identifiers', 
   assert.equal(JSON.stringify(snapshot).includes(ip), false);
   assert.equal(JSON.stringify(snapshot).includes('should-not-be-stored'), false);
 });
+
+test('uses Cloudflare country when local GeoIP has no match', () => {
+  process.env.IP_HASH_SECRET = 'test-secret-with-at-least-32-characters';
+  const headers = {
+    'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) Chrome/126.0',
+    'cf-ray': 'example-ray-id',
+    'cf-ipcountry': 'VN'
+  };
+  const req = {
+    ip: '203.0.113.42',
+    get(name) {
+      return headers[name.toLowerCase()];
+    }
+  };
+
+  const snapshot = getVisitorSnapshot(req, 'blog-kubernetes-networking');
+  assert.deepEqual(snapshot.location, {
+    countryCode: 'VN',
+    region: null,
+    city: null,
+    source: 'cloudflare'
+  });
+});
