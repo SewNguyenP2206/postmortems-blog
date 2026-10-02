@@ -19,20 +19,7 @@ Nếu bạn muốn làm theo, bạn cần quyền truy cập `kubectl` vào bấ
 
 Trước khi gõ bất kỳ câu lệnh nào, hãy hình dung bức tranh tổng thể. Hãy tưởng tượng mỗi Node là một tòa chung cư, và mỗi Pod là một căn hộ bên trong đó, với địa chỉ riêng của nó.
 
-```text
-Node A (tòa nhà)               Node B (tòa nhà)
-┌─────────────────┐            ┌─────────────────┐
-│  Pod 1  Pod 2   │            │  Pod 3  Pod 4   │
-│   │      │      │            │   │      │      │
-│  veth   veth    │            │  veth   veth    │
-│   │      │      │            │   │      │      │
-│(hành lang/bảng định tuyến)   │(hành lang/bảng định tuyến)
-│         │       │            │         │       │
-│      cửa chính ─┼────────────┼─ cửa chính      │
-│      (NIC thật) │            │  (NIC thật)     │
-└─────────────────┘            └─────────────────┘
-
-```
+![Sơ đồ luồng mạng giữa các Pod và node Kubernetes](blogs/image.png)
 
 Mặc định, một căn hộ bị cô lập hoàn toàn với mọi thứ xung quanh. Để gửi hoặc nhận bất cứ thứ gì, nó cần một đường ống dẫn ra hành lang. Quầy lễ tân của tòa nhà sẽ quyết định: đối với bất kỳ thứ gì rời khỏi căn hộ, nó sẽ đi đến một căn hộ khác trong cùng tòa nhà, hay cần phải đi ra cửa chính để đến một tòa nhà hoàn toàn khác.
 
