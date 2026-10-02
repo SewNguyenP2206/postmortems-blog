@@ -1,7 +1,22 @@
 {
-  "generated_at": "2026-10-02T04:54:05.362501+00:00",
-  "count": 1,
+  "generated_at": "2026-10-02T06:41:10.542558+00:00",
+  "count": 2,
   "articles": [
+    {
+      "slug": "2026-10-02-K8s-pod-networking",
+      "filename": "2026-10-02-K8s-pod-networking.md",
+      "title": "Chuyện gì thực sự xảy ra khi một Pod giao tiếp với một Pod khác",
+      "date": "2026-10-02",
+      "category": "Kubernetes",
+      "tags": [
+        "kubernetes",
+        "networking",
+        "iptables",
+        "devops"
+      ],
+      "author": "Phú Nguyễn",
+      "summary": "Một bài hướng dẫn thực tế, đi từ con số không về mạng (networking) trong Kubernetes — network namespaces, veth pairs, bảng định tuyến (routing tables), và cách một ClusterIP thực sự trở thành một IP Pod thật. Mọi câu lệnh trong này đều được chạy trên một cluster Kind thực tế, không phải mô phỏng."
+    },
     {
       "slug": "2026-10-02-kubernetes-requests-limits",
       "filename": "2026-10-02-kubernetes-requests-limits.md",

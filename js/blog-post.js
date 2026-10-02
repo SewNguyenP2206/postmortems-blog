@@ -9,7 +9,7 @@
   }
 
   async function loadArticle() {
-    if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+    if (!slug || !/^[a-z0-9-]+$/i.test(slug)) {
       showError('Đường dẫn bài viết không hợp lệ.');
       return;
     }
