@@ -24,6 +24,11 @@ const PAGE_COPY = {
     unavailable: 'Unavailable',
     like: 'Like',
     liked: 'Liked',
+    analyticsOff: 'Analytics off',
+    allowAnalytics: 'Allow analytics',
+    declineAnalytics: 'No thanks',
+    likeUnavailable: 'Like unavailable',
+    engagementPrivacy: 'Visit analytics stores a hashed IP, approximate location, device/browser type, and referrer host for 90 days. Raw IP and full browser details are not stored.',
     statuses: { resolved: 'resolved', ongoing: 'ongoing', monitoring: 'monitoring' }
   },
   vi: {
@@ -45,6 +50,11 @@ const PAGE_COPY = {
     unavailable: 'Chưa khả dụng',
     like: 'Thích',
     liked: 'Đã thích',
+    analyticsOff: 'Đã tắt thống kê',
+    allowAnalytics: 'Cho phép thống kê',
+    declineAnalytics: 'Không, cảm ơn',
+    likeUnavailable: 'Like chưa khả dụng',
+    engagementPrivacy: 'Thống kê lượt truy cập lưu IP dạng băm, vị trí ước tính, loại thiết bị/trình duyệt và tên miền giới thiệu trong 90 ngày. Không lưu IP thô hoặc chuỗi trình duyệt đầy đủ.',
     statuses: { resolved: 'đã khắc phục', ongoing: 'đang diễn ra', monitoring: 'đang theo dõi' }
   }
 };
@@ -192,6 +202,43 @@ async function togglePostLike(language) {
   }
 }
 
+function initPostEngagement(language) {
+  const consentKey = 'postmortem_analytics_consent';
+  const controls = document.getElementById('engagement-consent');
+  const allowButton = document.getElementById('analytics-allow');
+  const declineButton = document.getElementById('analytics-decline');
+  const likeButton = document.getElementById('post-like-button');
+  const views = document.getElementById('post-views');
+  const copy = PAGE_COPY[language];
+  let consent = localStorage.getItem(consentKey);
+
+  allowButton.textContent = copy.allowAnalytics;
+  declineButton.textContent = copy.declineAnalytics;
+  controls.hidden = consent === 'accepted';
+  declineButton.hidden = consent === 'declined';
+
+  if (consent === 'accepted') {
+    loadPostEngagement(language);
+    return;
+  }
+
+  views.textContent = copy.analyticsOff;
+  likeButton.textContent = copy.likeUnavailable;
+  likeButton.disabled = true;
+
+  allowButton.addEventListener('click', () => {
+    localStorage.setItem(consentKey, 'accepted');
+    controls.hidden = true;
+    loadPostEngagement(language);
+  }, { once: true });
+
+  declineButton.addEventListener('click', () => {
+    consent = 'declined';
+    localStorage.setItem(consentKey, consent);
+    controls.hidden = true;
+  }, { once: true });
+}
+
 function renderShareButtons() {
   const container = document.getElementById('share-group');
   if (!container) return;
@@ -259,9 +306,10 @@ function renderPost(meta, content) {
   document.getElementById('services-title').textContent = copy.services;
   document.getElementById('tags-title').textContent = copy.tags;
   document.getElementById('toc-title').textContent = copy.toc;
+  document.getElementById('engagement-privacy').textContent = copy.engagementPrivacy;
   renderLanguageSwitch(meta, language, copy.language);
   renderShareButtons();
-  loadPostEngagement(language);
+  initPostEngagement(language);
 
   // Page title
   document.title = `${meta.title || slug} | DevOps Postmortems`;

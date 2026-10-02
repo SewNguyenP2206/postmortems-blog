@@ -779,6 +779,22 @@ body {
   padding: 6px 10px;
 }
 
+.engagement-privacy {
+  margin: -4px 0 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.engagement-consent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -4px 0 14px;
+}
+
+.engagement-consent[hidden] { display: none; }
+
 .share-group {
   display: flex;
   align-items: center;

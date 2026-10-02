@@ -1,19 +1,24 @@
 require('dotenv').config();
 
+const { createHmac } = require('node:crypto');
+const { isIP } = require('node:net');
 const cors = require('cors');
 const express = require('express');
 const { rateLimit } = require('express-rate-limit');
 const helmet = require('helmet');
+const geoip = require('geoip-lite');
 const { MongoClient } = require('mongodb');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
+const eventRetentionDays = Number.parseInt(process.env.VIEW_EVENT_RETENTION_DAYS || '90', 10);
 const allowedOrigins = new Set([
   'https://postmortems.sewtech.site',
   ...(process.env.ALLOWED_ORIGINS || '').split(',').map(origin => origin.trim()).filter(Boolean)
 ]);
 
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
   origin(origin, callback) {
@@ -49,6 +54,59 @@ function validateViewerId(value, res) {
   return true;
 }
 
+function normalizeIp(value) {
+  if (typeof value !== 'string') return '';
+  const ip = value.trim().replace(/^::ffff:/i, '').split('%')[0];
+  return isIP(ip) ? ip : '';
+}
+
+function getBrowser(userAgent) {
+  if (/Edg\//i.test(userAgent)) return 'Edge';
+  if (/OPR\//i.test(userAgent)) return 'Opera';
+  if (/Firefox\//i.test(userAgent)) return 'Firefox';
+  if (/Chrome\//i.test(userAgent)) return 'Chrome';
+  if (/Safari\//i.test(userAgent)) return 'Safari';
+  return 'Other';
+}
+
+function getOperatingSystem(userAgent) {
+  if (/iPhone|iPad|iPod/i.test(userAgent)) return 'iOS';
+  if (/Android/i.test(userAgent)) return 'Android';
+  if (/Windows NT/i.test(userAgent)) return 'Windows';
+  if (/Mac OS X/i.test(userAgent)) return 'macOS';
+  if (/Linux/i.test(userAgent)) return 'Linux';
+  return 'Other';
+}
+
+function getVisitorSnapshot(req, slug, occurredAt = new Date()) {
+  const ip = normalizeIp(req.ip);
+  const userAgent = req.get('user-agent') || '';
+  const location = ip ? geoip.lookup(ip) : null;
+  let referrerHost = null;
+
+  try {
+    const referrer = req.get('referer');
+    if (referrer) referrerHost = new URL(referrer).hostname || null;
+  } catch {
+    referrerHost = null;
+  }
+
+  return {
+    slug,
+    occurredAt,
+    ipHash: ip ? createHmac('sha256', process.env.IP_HASH_SECRET).update(ip).digest('hex') : null,
+    location: location ? {
+      countryCode: location.country || null,
+      region: location.region || null,
+      city: location.city || null
+    } : null,
+    device: /iPad|Tablet/i.test(userAgent) ? 'tablet' : /Mobi|iPhone|Android/i.test(userAgent) ? 'mobile' : 'desktop',
+    browser: getBrowser(userAgent),
+    operatingSystem: getOperatingSystem(userAgent),
+    referrerHost
+  };
+}
+
 async function getStats(slug, viewerId) {
   const [post, likes] = await Promise.all([
     database.collection('post_stats').findOne({ _id: slug }),
@@ -77,6 +135,7 @@ app.get('/api/posts/:slug/stats', validateSlug, async (req, res) => {
 app.post('/api/posts/:slug/views', validateSlug, async (req, res) => {
   if (!validateViewerId(req.body?.viewerId, res)) return;
 
+  await database.collection('post_views').insertOne(getVisitorSnapshot(req, req.params.slug));
   await database.collection('post_stats').updateOne(
     { _id: req.params.slug },
     { $inc: { views: 1 }, $setOnInsert: { createdAt: new Date() } },
@@ -122,11 +181,21 @@ async function start() {
   if (!process.env.MONGODB_URI) {
     throw new Error('MONGODB_URI is required');
   }
+  if (!process.env.IP_HASH_SECRET || process.env.IP_HASH_SECRET.length < 32) {
+    throw new Error('IP_HASH_SECRET must contain at least 32 characters');
+  }
+  if (!Number.isInteger(eventRetentionDays) || eventRetentionDays < 1 || eventRetentionDays > 3650) {
+    throw new Error('VIEW_EVENT_RETENTION_DAYS must be between 1 and 3650');
+  }
 
   const client = new MongoClient(process.env.MONGODB_URI);
   await client.connect();
   database = client.db(process.env.MONGODB_DB || 'postmortems');
   await database.collection('post_likes').createIndex({ slug: 1, viewerId: 1 }, { unique: true });
+  await database.collection('post_views').createIndex(
+    { occurredAt: 1 },
+    { expireAfterSeconds: eventRetentionDays * 24 * 60 * 60 }
+  );
   app.listen(port, '0.0.0.0', () => console.log(`Engagement API listening on ${port}`));
 }
 
@@ -137,4 +206,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, start };
+module.exports = { app, getVisitorSnapshot, start };
