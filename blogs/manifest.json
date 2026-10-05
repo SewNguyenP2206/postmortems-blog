@@ -1,7 +1,23 @@
 {
-  "generated_at": "2026-10-02T10:34:23.346672+00:00",
-  "count": 3,
+  "generated_at": "2026-10-05T10:56:02.269572+00:00",
+  "count": 4,
   "articles": [
+    {
+      "slug": "2026-10-05-CoreDNS",
+      "filename": "2026-10-05-CoreDNS.md",
+      "title": "Cuốn sổ bạ theo dõi: Tên một Service biến thành IP như thế nào?",
+      "date": "2026-10-05",
+      "category": "Kubernetes",
+      "tags": [
+        "kubernetes",
+        "networking",
+        "dns",
+        "coredns",
+        "devops"
+      ],
+      "author": "Phú Nguyễn",
+      "summary": "Bạn gõ tên một Service, lệnh curl chạy mượt mà, và bạn chẳng bao giờ bận tâm về nó nữa. Đây là những gì thực sự diễn ra giữa hai khoảnh khắc đó — được kiểm chứng trực tiếp, bao gồm cả một cài đặt mặc định âm thầm làm các lượt tra cứu DNS ra bên ngoài chậm hơn mức cần thiết."
+    },
     {
       "slug": "2026-10-02-Cgroups-who-kills-your-pod",
       "filename": "2026-10-02-Cgroups-who-kills-your-pod.md",
