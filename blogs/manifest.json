@@ -1,7 +1,23 @@
 {
-  "generated_at": "2026-10-05T10:56:02.269572+00:00",
-  "count": 4,
+  "generated_at": "2026-10-06T06:37:25.297041+00:00",
+  "count": 5,
   "articles": [
+    {
+      "slug": " 2026-10-6-Full-packet-journey-pod-to-pod",
+      "filename": " 2026-10-6-Full-packet-journey-pod-to-pod.md",
+      "title": "Toàn bộ chuyến đi: Điều gì xảy ra giữa lệnh curl và Response, xuyên qua hai Node",
+      "date": "2026-10-06",
+      "category": "Kubernetes",
+      "tags": [
+        "kubernetes",
+        "networking",
+        "conntrack",
+        "iptables",
+        "devops"
+      ],
+      "author": "Phú Nguyễn",
+      "summary": "Mọi mảnh ghép từ ba bài viết trước — namespaces, routing, DNS, DNAT — được lắp ráp lại thành một request hoàn chỉnh, từ đầu đến cuối, đi qua hai Node khác nhau. Bổ sung thêm cơ chế quan trọng giúp câu trả lời tự tìm đường quay về mà không ai phải bận tâm suy nghĩ."
+    },
     {
       "slug": "2026-10-05-CoreDNS",
       "filename": "2026-10-05-CoreDNS.md",
