@@ -1,7 +1,23 @@
 {
-  "generated_at": "2026-10-06T07:20:12.429052+00:00",
-  "count": 5,
+  "generated_at": "2026-10-14T03:26:16.067696+00:00",
+  "count": 6,
   "articles": [
+    {
+      "slug": "2026-10-14-The-Clock-Behind-Every-kubectl",
+      "filename": "2026-10-14-The-Clock-Behind-Every-kubectl.md",
+      "title": "Chiếc đồng hồ đằng sau mọi lệnh kubectl: etcd, Revisions, và tại sao patch thực chất là PUT",
+      "date": "2026-10-14",
+      "category": "Kubernetes",
+      "tags": [
+        "kubernetes",
+        "etcd",
+        "api-server",
+        "watch",
+        "devops"
+      ],
+      "author": "Phú Nguyễn",
+      "summary": "Mọi object trong Kubernetes đều là một key trong etcd, và mỗi thay đổi đều làm tăng một bộ đếm duy nhất trên toàn cluster. Việc đọc trực tiếp bộ đếm đó sẽ giải thích resourceVersion, lỗi 'object has been modified', và cách các controller không bao giờ bỏ lỡ một sự kiện nào. Mọi con số ở đây đều đến từ một cluster Kind thực tế."
+    },
     {
       "slug": "2026-10-6-Full-packet-journey-pod-to-pod",
       "filename": "2026-10-6-Full-packet-journey-pod-to-pod.md",
