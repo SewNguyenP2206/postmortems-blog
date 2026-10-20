@@ -1,7 +1,24 @@
 {
-  "generated_at": "2026-10-14T03:26:16.067696+00:00",
-  "count": 6,
+  "generated_at": "2026-10-20T04:47:10.245886+00:00",
+  "count": 7,
   "articles": [
+    {
+      "slug": "2026-10-20-Elastic-search-pod-missing-dictionary-files",
+      "filename": "2026-10-20-Elastic-search-pod-missing-dictionary-files.md",
+      "title": "Pod Elasticsearch bị Readiness Loop do lỗi thiếu file Dictionary khi Helm Upgrade",
+      "date": "2026-10-20",
+      "severity": "P2",
+      "status": "resolved",
+      "duration": "Khoảng 19–20 giờ (từ thời điểm pod dính lỗi 19/10 04:48Z tới khi khôi phục)",
+      "author": "Team Platform / Backend",
+      "tags": [
+        "kubernetes",
+        "eks",
+        "elasticsearch",
+        "helm"
+      ],
+      "summary": "Một đợt update Helm Chart làm tái tạo Pod Elasticsearch nhưng bị thiếu mất file cấu hình custom analyzer/dictionary. Lỗi này làm primary shard của index quan trọng không thể mount, khiến cluster chuyển sang trạng thái Red và kéo theo readiness probe thất bại liên tục, làm quá trình rolling update bị nghẽn."
+    },
     {
       "slug": "2026-10-14-The-Clock-Behind-Every-kubectl",
       "filename": "2026-10-14-The-Clock-Behind-Every-kubectl.md",
